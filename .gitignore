@@ -1,1 +1,36 @@
-node_modules
+# OS 系
+.DS_Store
+Thumbs.db
+
+# Node / Gulp
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# PHP 関連
+vendor/
+*.log
+*.cache
+
+# IDE / エディタ
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Docker 関連
+*.env
+docker-compose.override.yml
+docker-compose.override.yaml
+docker-compose.override.*
+**/Dockerfile.*
+
+# ビルド成果物 / 一時ファイル
+*.tmp
+*.swp
+*.bak
+
+# アップロードファイル（必要な場合は除外）
+upload/
