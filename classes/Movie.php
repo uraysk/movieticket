@@ -33,21 +33,16 @@
             }
 
        }
-
-       public function selectMoviesix(){
-           $sql = "SELECT * FROM movies ORDER BY movie_id DESC LIMIT 6";
-           $result = $this->conn->query($sql);
-           $rows = array();
-           if($result->num_rows>0){
-               while($row = $result->fetch_assoc()){
-                   $rows[] = $row;
-               }
-               return $rows;
-           }
-
-           else{
-               return false;
-           }
+       public function selectMoviesix(): array {
+            $sql = "SELECT * FROM movies ORDER BY movie_id DESC LIMIT 6";
+            $result = $this->conn->query($sql);
+            $rows = [];
+            if($result->num_rows > 0){
+                while($row = $result->fetch_assoc()){
+                    $rows[] = $row;
+                }
+            }
+            return $rows;
        }
        public function selectMovieAll(){
         $sql = "SELECT * FROM movies ORDER BY movie_id DESC ";
@@ -97,39 +92,11 @@
                 return false;
             }
         }
-        public function selectOnce($id){
-            $sql =  "SELECT * FROM moviecinema INNER JOIN cinemas ON moviecinema.cinema_id=cinemas.cinema_id
-                                               INNER JOIN movies ON moviecinema.movie_id=movies.movie_id WHERE moviecinema.movie_id=$id";
-            $result = $this->conn->query($sql);
-            $rows = array();
-                if($result->num_rows > 0){
-                    while($row = $result->fetch_assoc()){
-                        $rows[] = $row;
-                          
-                    }
-                    return $rows;
-                }
-    
-                else{
-                    return false;
-                }
-        }
-        public function selectOne($id){
+        public function selectOne(int $id): ?array {
             $sql = "SELECT * FROM movies WHERE movie_id=$id";
-
             $result = $this->conn->query($sql);
-
-            if($result->num_rows > 0){
-                $row = $result->fetch_assoc();
-                return $row;
-            }
-
-            else{
-                return false;
-            }
+            return $result->num_rows > 0 ? $result->fetch_assoc() : null;
         }
-
-
 
         public function store($title, $cinemaid,$categoryid,$mc_quantity,$price,$sdate,$edate,$picture,$file,$tmpfile){
             $sql = "INSERT INTO movies(movie_title,directory) VALUES('$title','$file')";
@@ -164,17 +131,10 @@
             $this->conn->error;
         }
 
-        public function delete($id){
-            $sql = "DELETE FROM movies WHERE movie_id=$id";
-            $result = $this->conn->query($sql);
-            if($result){
-                echo "<script>window.location.replace('movies.php')</script>";
 
-            }
-            else{
-                echo $this->conn->error;
-            }
-            $this->conn->close();
+        public function delete(int $id): bool {
+            $sql = "DELETE FROM movies WHERE movie_id=$id";
+            return $this->conn->query($sql);
         }
 
     }

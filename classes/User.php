@@ -1,126 +1,133 @@
-<?php 
+<?php
 require_once("Database.php");
 
-class User extends Database{
+class User extends Database {
 
-    public function login($email, $pass,$cid){
-        $sql = "SELECT * FROM users WHERE email='$email' AND password = '$pass'";
+    // ログイン処理
+    public function login($email, $pass, $cid = null) {
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email=?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        $result = $this->conn->query($sql);
-        if($result){
+        if ($result && $result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $_SESSION['userid'] = $row['user_id'];
 
-            if($row['status'] == "admin"){
-                echo "<script>window.location.replace('Admin/admintop.php')</script>";
-            }
-            elseif($row['status']== "user"){
-                if($cid == FALSE){
-                    echo "<script>window.location.replace('Web/toppage.php')</script>";
+            // パスワード検証
+            if (password_verify($pass, $row['password'])) {
+                if (session_status() !== PHP_SESSION_ACTIVE) {
+                    session_start();
                 }
-                else if($cid == TRUE){
-                    echo "<script>window.location.replace('Web/reserve1.php?cid=$cid')</script>";
-                }
-                else{
-                    echo "<script>window.location.replace('Web/toppage.php')</script>";
-                }
-            }
+                $_SESSION['userid'] = $row['user_id'];
+                $_SESSION['status'] = $row['status'];
 
-        }
-        else{
-            return false;
+                // リダイレクト
+                if ($row['status'] === "admin") {
+                    header("Location: Admin/admintop.php");
+                    exit;
+                } elseif ($row['status'] === "user") {
+                    if (!$cid) {
+                        header("Location: Web/toppage.php");
+                    } else {
+                        header("Location: Web/reserve1.php?cid=$cid");
+                    }
+                    exit;
+                }
+            } else {
+                return false; // パスワード不一致
+            }
+        } else {
+            return false; // ユーザーなし
         }
     }
 
-    public function select(){
+    // 全件取得
+    public function select() {
         $sql = "SELECT * FROM users";
         $result = $this->conn->query($sql);
-        $row = array();
-        if($result->num_rows > 0){
-            while($row = $result->fetch_assoc()){
+
+        if ($result && $result->num_rows > 0) {
+            $rows = [];
+            while ($row = $result->fetch_assoc()) {
                 $rows[] = $row;
             }
-
             return $rows;
         }
-        
-        else{
-            return false;
+        return false;
+    }
+
+    // 1件取得
+    public function selectOne($id) {
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE user_id=?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc();
+        }
+        return false;
+    }
+
+    // 新規登録
+    public function store($fname, $lname, $pass, $email, $status) {
+        // メール重複チェック
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email=?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result && $result->num_rows > 0) {
+            return false; // すでに存在
+        }
+
+        $hashed = password_hash($pass, PASSWORD_DEFAULT);
+
+        $stmt = $this->conn->prepare("INSERT INTO users(firstname, lastname, password, email, status) VALUES(?,?,?,?,?)");
+        $stmt->bind_param("sssss", $fname, $lname, $hashed, $email, $status);
+
+        if ($stmt->execute()) {
+            header("Location: users.php");
+            exit;
+        } else {
+            return $this->conn->error;
         }
     }
 
-    public function selectOne($id){
-        $sql = "SELECT * FROM users WHERE user_id=$id";
-        $result = $this->conn->query($sql);
+    // 更新
+    public function update($id, $fname, $lname, $email, $status) {
+        // 他ユーザーと重複確認
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email=? AND user_id != ?");
+        $stmt->bind_param("si", $email, $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if($result->num_rows > 0){
-            $row = $result->fetch_assoc();
-            return $row;
-        }
-
-        else{
-            return false;
-        }
-    }
-    public function store($fname,$lname,$pass,$email,$status){
-        $sql = "SELECT * FROM users WHERE email = '$email'";
-        $result = $this->conn->query($sql);
-        if($result->num_rows > 0){
-            return false;
-        }
-        else{
-            $pass = md5($pass);
-            $sql = "INSERT INTO users(firstname,lastname,password,email,status) VALUES('$fname','$lname', '$pass','$email','$status')";
-            $result = $this->conn->query($sql);
-            if($result){
-                echo "<script>window.location.replace('users.php')</script>";
-
-            }
-            else{
-                return $conn->error;
-            }
-        
-        }
-        $this->conn->close();
-    }
-
-    public function update($id,$fname,$lname,$email,$status){
-        $sql = "SELECT * FROM users WHERE email = '$email' AND user_id != $id";
-        $result = $this->conn->query($sql);
-        if($result->num_rows > 0){
+        if ($result && $result->num_rows > 0) {
             return false;
         }
 
-        else{
-            $sql = "UPDATE users SET firstname='$fname', lastname='$lname', email='$email', status='$status' WHERE user_id=$id";
-            $result = $this->conn->query($sql);
-            if($result){
-                echo "<script>window.location.replace('users.php')</script>";
+        $stmt = $this->conn->prepare("UPDATE users SET firstname=?, lastname=?, email=?, status=? WHERE user_id=?");
+        $stmt->bind_param("ssssi", $fname, $lname, $email, $status, $id);
 
-            }
-            else{
-                echo $this->conn->error;
-            }
-
+        if ($stmt->execute()) {
+            header("Location: users.php");
+            exit;
+        } else {
+            return $this->conn->error;
         }
-        $this->conn->close();
     }
 
-    public function delete($id){
+    // 削除
+    public function delete($id) {
+        $stmt = $this->conn->prepare("DELETE FROM users WHERE user_id=?");
+        $stmt->bind_param("i", $id);
 
-        $sql = "DELETE FROM users WHERE user_id=$id";
-        $result = $this->conn->query($sql);
-        if($result){
-            echo "<script>window.location.replace('users.php')</script>";
-
+        if ($stmt->execute()) {
+            header("Location: users.php");
+            exit;
+        } else {
+            return $this->conn->error;
         }
-        else{
-            echo $this->conn->error;
-        }
-
-        $this->conn->close();
-    } 
-
+    }
 }
-
 ?>
