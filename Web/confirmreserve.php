@@ -3,10 +3,6 @@
     $id = $_GET['id'];
     $row = $reserve->selectreserve($id);
 ?>
-
-
-
-
 <header id="gtco-header" class="gtco-cover gtco-cover-sm" role="banner" style="background-image: url(images/img_2.jpg)">
 		<div class="overlay"></div>
 		<div class="gtco-container">

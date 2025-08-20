@@ -1,29 +1,36 @@
 <?php
-require("../classes/Reserve.php");
-require("../classes/User.php");
-require("../classes/Movie.php");
-require("../classes/Cinema.php");
-require("../classes/Category.php");
+// header.php の先頭：必ず空白・改行なし
+//if (session_status() !== PHP_SESSION_ACTIVE) {
+//    session_start();
+//}
 
+// ログインチェック
+//if (empty($_SESSION['userid'])) {
+//   header('Location: ../login.php'); // 適宜パスを調整
+//  exit;}
 
-  $user = new User;
-  $reserve = new Reserve;
-  $movie = new Movie;
-  $cinema = new Cinema;
-  $category = new Category;
+// userid を安全に取得
+//$id = $_SESSION['userid'];
 
- 
+// クラス読み込み
+require_once("../classes/Reserve.php");
+require_once("../classes/User.php");
+require_once("../classes/Movie.php");
+require_once("../classes/Cinema.php");
+require_once("../classes/Category.php");
 
-  session_start();
+// クラスインスタンス作成
+$user = new User;
+$reserve = new Reserve;
+$movie = new Movie;
+$cinema = new Cinema;
+$category = new Category;
 
-  $id = $_SESSION['userid'];
-  $userdetail = $user->selectOne($id);
+// ユーザー情報取得
+//$userdetail = $user->selectOne($id);
 
-  if(empty($_SESSION['userid'])){
-    header('location:login.php');
-  }
-
-  $row = $reserve->selectOne($id)
+// 予約情報取得
+//$row = $reserve->selectOne($id);
 ?>
 
 <!DOCTYPE HTML>
@@ -111,7 +118,7 @@ require("../classes/Category.php");
 			
 			<div class="row">
 				<div class="col-sm-4 col-xs-12">
-					<div id="gtco-logo"><a href="toppage.php">U Ticket <em>.</em></a></div>
+					<div id="gtco-logo"><a href="index.php">U Ticket <em>.</em></a></div>
 				</div>
 				<div class="col-xs-8 text-right menu-1">
 					<ul>
