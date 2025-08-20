@@ -11,11 +11,10 @@ class Database{
 
     public function __construct(){
         
-        $this->servername = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?? 'mysql';
-        $this->username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? 'root';
-        $this->password = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?? 'rootpassword';
-        $this->database = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?? 'portfolio';
-
+    $this->servername = $_ENV['DB_HOST'] ?? 'mysql';
+    $this->username = $_ENV['DB_USER'] ?? 'root';  
+    $this->password = $_ENV['DB_PASS'] ?? 'rootpassword';
+    $this->database = $_ENV['DB_NAME'] ?? 'portfolio';
         $this->conn = new mysqli($this->servername, $this->username, $this->password, $this->database);
 
         if($this->conn->connect_error){
